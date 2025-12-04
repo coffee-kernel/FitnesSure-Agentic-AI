@@ -1,34 +1,24 @@
 trigger:
-- main
+  - main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.11'
-    architecture: 'x64'
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.11'
 
-- script: python -m pip install --upgrade pip
-  displayName: 'Upgrade pip'
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: "Install dependencies"
 
-- script: pip install -r requirements.txt
-  displayName: 'Install dependencies'
+  - script: |
+      pytest --junitxml=test-results/results.xml
+    displayName: "Run tests"
 
-- script: python -m pytest --disable-warnings --maxfail=1
-  displayName: 'Run tests'
-  continueOnError: true # avoid failing if tests aren't set up
-
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
-    replaceExistingArchive: true
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'drop'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '.'
+      artifactName: 'drop'
